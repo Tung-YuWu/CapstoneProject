@@ -1,0 +1,6 @@
+WS=data[:,357]
+alone=data[:,476]
+comboWSa=np.column_stack((WS,alone))
+comboWSa = comboWSa[~np.isnan(comboWSa).any(axis=1)]
+sorteddataWSa=comboWSa[comboWSa[:,1].argsort()]
+t4,p4=stats.ttest_ind(sorteddataWSa[4:273,0],sorteddataWSa[274:666,0],alternative='greater')
