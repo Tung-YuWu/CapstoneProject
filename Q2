@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu May 12 12:54:16 2022
+
+@author: tommywu
+"""
+
+import numpy as np
+import pandas as pd 
+from sklearn.decomposition import PCA
+from scipy import stats
+import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples
+data = np.genfromtxt('movieReplicationSet.csv',delimiter=',')  
+predf=pd.read_csv('movieReplicationSet.csv', header = None)
+#%%
+persodata = data [:,420:463]
+persodata = persodata[~np.isnan(persodata).any(axis=1)]
+
+yOutcomes = persodata[:,0]
+predictors = persodata[:,1:]
+
+r=np.corrcoef(predictors,rowvar=False)
+plt.imshow(r)
+plt.colorbar()
+plt.show()
+
+zscoredData=stats.zscore(predictors)
+pca=PCA().fit(zscoredData)
+eigVals=pca.explained_variance_
+loadings=pca.components_*-1
+rotatedData=pca.fit_transform(zscoredData)*-1
+
+plt.plot(rotatedData[:,2],rotatedData[:,3],'o',markersize=1)
+plt.xlabel("shyness")
+plt.ylabel("imaginative")
+plt.show()
+
+x=np.column_stack((rotatedData[:,2],rotatedData[:,3]))
+
+
+#%%
+numcluster=9
+Q = np.empty([numcluster,1])*np.NaN
+
+for ii in range(2,11):
+    kMeans=KMeans(n_clusters = int(ii)).fit(x)
+    cId=kMeans.labels_
+    cCoords=kMeans.cluster_centers_
+    s = silhouette_samples(x,cId)
+    Q[ii-2] = sum(s)
+    
+    plt.subplot(3,3,ii-1)
+    plt.hist(s,bins=20)
+    plt.xlim(-0.2,1)
+    plt.ylim(0,500)
+    plt.xlabel("Sil Score")
+    plt.ylabel("Count")
+    plt.title('Sum: {}'.format(int(Q[ii-2])))
+    plt.tight_layout()
+
+numclusters=5
+kMeans=KMeans(n_clusters = int(ii)).fit(x)
+cId=kMeans.labels_
+cCoords=kMeans.cluster_centers_
+
+for ii in range(numclusters):
+    plotIndex = np.argwhere(cId == int(ii))
+    plt.plot(x[plotIndex,0],x[plotIndex,1],'o',markersize=1)
+    plt.plot(cCoords[int(ii-1),0],cCoords[int(ii-1),1],'o',markersize=5,color='black')
+    plt.xlabel('shyness')
+    plt.ylabel('imaginative')
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
