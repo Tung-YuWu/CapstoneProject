@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri May 13 15:16:40 2022
+
+@author: tommywu
+"""
+
+import numpy as np
+import pandas as pd 
+from sklearn.decomposition import PCA
+from scipy import stats
+import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples
+data = np.genfromtxt('movieReplicationSet.csv',delimiter=',') 
+predf=pd.read_csv('movieReplicationSet.csv', header = None)
+#%%
+HP1=data[:,230]
+HP2=data[:,258]
+HP3=data[:,387]
+HP4=data[:,394]
+HP=np.column_stack((HP1,HP2,HP3,HP4))
+HP=HP[~np.isnan(HP).any(axis=1)]
+
+meanHP1=np.mean(HP[:,0])
+meanHP2=np.mean(HP[:,1])
+meanHP3=np.mean(HP[:,2])
+meanHP4=np.mean(HP[:,3])
+
+HPmean=np.row_stack((meanHP1,meanHP2,meanHP3,meanHP4))
+
+stdHP=np.std(HPmean)
+#%%
+SW1=data[:,273]
+SW2=data[:,93]
+SW3=data[:,174]
+SW4=data[:,336]
+SW5=data[:,342]
+SW6=data[:,21]
+SW=np.column_stack((SW1,SW2,SW3,SW4,SW5,SW6))
+SW=SW[~np.isnan(SW).any(axis=1)]
+
+meanSW1=np.mean(SW[:,0])
+meanSW2=np.mean(SW[:,1])
+meanSW3=np.mean(SW[:,2])
+meanSW4=np.mean(SW[:,3])
+meanSW5=np.mean(SW[:,4])
+meanSW6=np.mean(SW[:,5])
+
+SWmean=np.row_stack((meanSW1,meanSW2,meanSW3,meanSW4,meanSW5,meanSW6))
+
+stdSW=np.std(SWmean)
+#%%
+M1=data[:,35]
+M2=data[:,172]
+M3=data[:,306]
+M=np.column_stack((M1,M2,M3))
+M=M[~np.isnan(M).any(axis=1)]
+
+meanM1=np.mean(M[:,0])
+meanM2=np.mean(M[:,1])
+meanM3=np.mean(M[:,2])
+
+Mmean=np.row_stack((meanM1,meanM2,meanM3))
+
+stdM=np.std(Mmean)
+#%%
+ID1=data[:,4]
+ID2=data[:,32]
+ID3=data[:,33]
+ID4=data[:,142]
+ID=np.column_stack((ID1,ID2,ID3,ID4))
+ID=ID[~np.isnan(ID).any(axis=1)]
+
+meanID1=np.mean(ID[:,0])
+meanID2=np.mean(ID[:,1])
+meanID3=np.mean(ID[:,2])
+meanID4=np.mean(ID[:,3])
+
+IDmean=np.row_stack((meanID1,meanID2,meanID3,meanID4))
+
+stdID=np.std(IDmean)
+#%%
+JP1=data[:,370]
+JP2=data[:,37]
+JP3=data[:,47]
+JP=np.column_stack((JP1,JP2,JP3))
+JP=JP[~np.isnan(JP).any(axis=1)]
+
+meanJP1=np.mean(JP[:,0])
+meanJP2=np.mean(JP[:,1])
+meanJP3=np.mean(JP[:,2])
+
+JPmean=np.row_stack((meanJP1,meanJP2,meanJP3))
+
+stdJP=np.std(JPmean)
+#%%
+P1=data[:,75]
+P2=data[:,204]
+P3=data[:,351]
+P=np.column_stack((P1,P2,P3))
+P=P[~np.isnan(P).any(axis=1)]
+
+meanP1=np.mean(P[:,0])
+meanP2=np.mean(P[:,1])
+meanP3=np.mean(P[:,2])
+
+Pmean=np.row_stack((meanP1,meanP2,meanP3))
+
+stdP=np.std(Pmean)
+#%%
+T1=data[:,157]
+T2=data[:,171]
+T3=data[:,276]
+T=np.column_stack((T1,T2,T3))
+T=T[~np.isnan(T).any(axis=1)]
+
+meanT1=np.mean(T[:,0])
+meanT2=np.mean(T[:,1])
+meanT3=np.mean(T[:,2])
+
+Tmean=np.row_stack((meanT1,meanT2,meanT3))
+
+stdT=np.std(Tmean)
+#%%
+B1=data[:,46]
+B2=data[:,181]
+B3=data[:,235]
+B=np.column_stack((B1,B2,B3))
+B=B[~np.isnan(B).any(axis=1)]
+
+meanB1=np.mean(B[:,0])
+meanB2=np.mean(B[:,1])
+meanB3=np.mean(B[:,2])
+
+Bmean=np.row_stack((meanB1,meanB2,meanB3))
+
+stdB=np.std(Bmean)
+#%%
+fig=plt.figure()
+ax1 = fig.add_axes([0,0,2,1])
+movies = ['Batman', 'Star Wars', 'Indiana Jones', 'Matrix', 'Jurassic Park','Toy Story', 'Pirates of the Caribbean', 'Harry Potter']
+stds = [stdB, stdSW, stdID,stdM,stdJP,stdT,stdP, stdHP]
+ax1.bar(movies,stds,color='black',edgecolor='black')
+ax1.set_ylabel('STD of Mean Rating/Franchise')
+ax1.set_title('Inconsistent Qualities by Movie Raters')
+ax1.set_xlabel('Movie Franchises')
+plt.show()
