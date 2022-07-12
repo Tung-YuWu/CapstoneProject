@@ -1,0 +1,18 @@
+import numpy as np
+import pandas as pd 
+from sklearn.decomposition import PCA
+from scipy import stats
+import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples
+data = np.genfromtxt('movieReplicationSet.csv',delimiter=',') 
+predf=pd.read_csv('movieReplicationSet.csv', header = None)
+#%%
+shrek = data[:,87]
+gender = data[:,474]
+comboSG = np.column_stack((shrek,gender))
+comboSG = comboSG[~np.isnan(comboSG).any(axis=1)]
+
+sorteddataSG=comboSG[comboSG[:,1].argsort()]
+t2,p2=stats.ttest_ind(sorteddataSG[0:742,0],sorteddataSG[743:983,0])
