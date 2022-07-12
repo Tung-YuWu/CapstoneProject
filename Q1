@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu May 12 05:15:16 2022
+
+@author: tommywu
+"""
+
+import numpy as np
+import pandas as pd 
+from sklearn.decomposition import PCA
+from scipy import stats
+import matplotlib.pyplot as plt
+data = np.genfromtxt('movieReplicationSet.csv',delimiter=',')  
+predf=pd.read_csv('movieReplicationSet.csv', header = None)
+#%%
+
+
+sendata = data [:,400:419]
+sendata = sendata[~np.isnan(sendata).any(axis=1)]
+
+zscoredDataSen=stats.zscore(sendata)
+pcaSen=PCA().fit(zscoredDataSen)
+eigValsSen=pcaSen.explained_variance_
+loadingsSen=pcaSen.components_
+rotatedDataSen=pcaSen.fit_transform(zscoredDataSen)
+covarexplainedSen= eigValsSen/sum(eigValsSen)*100
+
+
+persodata = data [:,420:463]
+persodata = persodata[~np.isnan(persodata).any(axis=1)]
+
+zscoredDataPerso=stats.zscore(persodata)
+pcaPerso=PCA().fit(zscoredDataPerso)
+eigValsPerso=pcaPerso.explained_variance_
+loadingsperso=pcaPerso.components_
+rotatedDataPerso=pcaPerso.fit_transform(zscoredDataPerso)
+covarexplainedPerso= eigValsPerso/sum(eigValsPerso)*100
+
+movdata  = data [:,464:473]
+movdata = movdata[~np.isnan(movdata).any(axis=1)]
+
+zscoredData=stats.zscore(movdata)
+pca=PCA().fit(zscoredData)
+eigVals=pca.explained_variance_
+loadings=pca.components_
+rotatedData=pca.fit_transform(zscoredData)
+covarexplained= eigVals/sum(eigVals)*100
+#%%
+threshold = 1 
+print("kaiser",np.count_nonzero(eigValsSen>threshold))
+print("kaiser",np.count_nonzero(eigValsPerso>threshold))
+print("kaiser",np.count_nonzero(eigVals>threshold))
+
+numClasses = 9
+x = np.linspace(1,numClasses,numClasses)
+whichprinciplecomponent=1
+plt.bar(x,loadings[whichprinciplecomponent,:]*-1)
+plt.xlabel('component number')
+plt.ylabel('Loading')
+plt.show()
+
+numClasses = 43
+x = np.linspace(1,numClasses,numClasses)
+whichprinciplecomponent= 3
+plt.bar(x,loadingsperso[whichprinciplecomponent,:]*-1)
+plt.xlabel('component number')
+plt.ylabel('Loading')
+plt.show()
+
+for ii in range (len(covarexplainedSen)):
+    print (covarexplainedSen[ii].round(3))
+for ii in range (len(covarexplainedPerso)):
+    print (covarexplainedPerso[ii].round(3))
+    
+plt.plot(rotatedData[:,0]*-1,rotatedData[:,1]*-1,'o',markersize=5)
+plt.xlabel('immersion')
+plt.ylabel('comprehensibility')
+plt.show()
+
+
+plt.plot(rotatedDataSen[0:1047,1]*-1,rotatedData[0:1047,1]*-1,'o',markersize=5)
+plt.xlabel('randomness')
+plt.ylabel('comprehensibility')
+plt.show()
+#%%
+
+
+
+
+
+
+
+
+
