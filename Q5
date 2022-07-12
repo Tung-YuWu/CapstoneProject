@@ -1,0 +1,7 @@
+lionk = data[:,220]
+sibling = data[:,475]
+comboLS = np.column_stack((lionk,sibling))
+comboLS = comboLS[~np.isnan(comboLS).any(axis=1)]
+
+sorteddataLS=comboLS[comboLS[:,1].argsort()]
+t3,p3=stats.ttest_ind(sorteddataLS[10:785,0],sorteddataLS[786:936,0],alternative='greater')
