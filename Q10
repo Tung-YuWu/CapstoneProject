@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat May 14 02:40:13 2022
+
+@author: tommywu
+"""
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy import stats
+from sklearn.decomposition import PCA
+from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+#%%
+data = pd.read_csv('movieReplicationSet.csv')
+movies = data.iloc[:,0:401]
+factors = data.iloc[:,400:]
+frames = [movies, factors]
+combined = pd.concat(frames,axis=1)
+factors = factors[~np.isnan(factors).any(axis=1)]
+
+zscoredData = stats.zscore(factors)
+pca = PCA().fit(zscoredData)
+eigVals = pca.explained_variance_
+loadings = pca.components_
+rotatedData = pca.fit_transform(zscoredData)
+covarExplained = eigVals/sum(eigVals)*100
+for ii in range(len(covarExplained)):
+    print(covarExplained[ii].round(3))
+    
+threshold = 1
+print('Number of factors selected by Kaiser criterion:', np.count_nonzero(eigVals > threshold))
+
+pca10=rotatedData[:,:18]
+pca10.shape
+
+pcaindex=['F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12','F13','F14','F15','F16','F17','F18']
+
+pcaall=pd.DataFrame(pca10,columns=pcaindex)
+
+df=pd.read_csv('movieReplicationSet.csv')
+title = df.columns[:400].to_list()
+Ftitle= df[title]
+
+modelacurrateQ10=[]
+from sklearn import preprocessing
+for i in range (400):
+
+    dataset=pd.DataFrame.merge(pcaall,Ftitle[title[i]], left_index =True , right_index = True,how = 'inner')
+    dataset.dropna(inplace= True)
+    dataset = dataset[~dataset.index.duplicated()]
+    lab = preprocessing.LabelEncoder()
+    x = dataset.iloc[:,:18]
+    y = dataset.iloc[:,18:].to_numpy()
+    y_transformed = lab.fit_transform(y) 
+    
+    clfmodel = RandomForestClassifier(n_estimators=100).fit(x,y_transformed)
+    predictions = clfmodel.predict(x)
+    print(title[i])
+    
+    modelAccuracy = accuracy_score(y_transformed,predictions)
+    print('Random forest model accuracy:',modelAccuracy)
+    modelacurrateQ10.append(modelAccuracy)
+    print('---------------')
+sum(modelacurrateQ10)/len(modelacurrateQ10)
+#%%
+from sklearn import preprocessing
+for i in range (400):
+    dataset=pd.DataFrame.merge(pcaall,Ftitle[title[i]], left_index =True , right_index = True,how = 'inner')
+    dataset.dropna(inplace= True)
+    lab = preprocessing.LabelEncoder()
+    x = dataset.iloc[:,:18]
+    y = dataset.iloc[:,18:].to_numpy()
+    y_transformed = lab.fit_transform(y) 
+    
+    x_train, x_test, y_train, y_test = train_test_split(x, y_transformed, test_size = 0.2, random_state = 0)
+    
+    clf = RandomForestClassifier(n_estimators=100).fit(x_train,y_train)
+    
+    predictions = clf.predict(x_test)
+
+modelacurrateQ10=[]
+
+for i in range (400):
+
+    x_train = np.delete(x,i,0)
+    x_test = x[i].reshape(1,np.size(x_train,axis=1))
+    y_train = np.delete(y_transformed,i,0)
+    y_test=y_transformed[i]
+    
+    clfmodel = RandomForestClassifier(n_estimators=100).fit(x_train,y_train)
+
+    predictions = clf.predict(x_test)
+    print(title[i])
+    
+    modelAccuracy = accuracy_score(y_test,predictions)
+    print('Random forest model accuracy:',modelAccuracy)
+    modelacurrateQ10.append(modelAccuracy)
+    print('---------------')
+    
+sum(modelacurrateQ10)/len(modelacurrateQ10)
+
