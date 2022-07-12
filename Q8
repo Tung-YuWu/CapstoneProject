@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri May 13 16:51:16 2022
+
+@author: tommywu
+"""
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy import stats
+from sklearn.decomposition import PCA
+from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+import warnings
+warnings.filterwarnings("ignore")
+data = np.genfromtxt('movieReplicationSet.csv',delimiter=',') 
+datamean=np.genfromtxt('movieReplicationSetQ3.csv',delimiter=',')
+df=pd.read_csv('movieReplicationSet.csv')
+#%%
+persodata = data [:,420:463]
+persodata = persodata[~np.isnan(persodata).any(axis=1)]
+movdata = data[:,0:400]
+
+
+zscoredDataPerso=stats.zscore(persodata)
+pcaPerso=PCA().fit(zscoredDataPerso)
+eigValsPerso=pcaPerso.explained_variance_
+loadingsperso=pcaPerso.components_
+rotatedDataPerso=pcaPerso.fit_transform(zscoredDataPerso)
+covarexplainedPerso= eigValsPerso/sum(eigValsPerso)*100
+
+for ii in range(len(covarexplainedPerso)):
+    print(covarexplainedPerso[ii].round(3))
+    
+PCAdata=rotatedDataPerso[:,0:8]
+#%%
+title = df.columns[:400].to_list()
+Ftitle= df[title]
+index = df.columns[421:464].tolist()
+clean_data = df.dropna(subset=index)[index]
+perso = clean_data.iloc[:,0:]
+
+
+
+zscoredDataPerso=stats.zscore(perso)
+pcaPerso=PCA().fit(zscoredDataPerso)
+eigValsPerso=pcaPerso.explained_variance_
+loadingsperso=pcaPerso.components_
+rotatedDataPerso=pcaPerso.fit_transform(zscoredDataPerso)
+covarexplainedPerso= eigValsPerso/sum(eigValsPerso)*100
+
+
+
+
+pcatitle = ['F1','F2','F3','F4','F5','F6','F7','F8']
+pcaperso = rotatedDataPerso[:,0:8]
+
+dfPerso=pd.DataFrame(pcaperso,columns=pcatitle)
+
+
+
+from sklearn import preprocessing
+for i in range (400):
+    dataset=pd.DataFrame.merge(dfPerso,Ftitle[title[i]], left_index =True , right_index = True,how = 'inner')
+    dataset.dropna(inplace= True)
+    lab = preprocessing.LabelEncoder()
+    x = dataset.iloc[:,:8]
+    y = dataset.iloc[:,8:].to_numpy()
+    y_transformed = lab.fit_transform(y) 
+    
+    x_train, x_test, y_train, y_test = train_test_split(x, y_transformed, test_size = 0.2, random_state = 0)
+    
+    clf = RandomForestClassifier(n_estimators=100).fit(x_train,y_train)
+    
+    predictions = clf.predict(x_test)
+    
+
+
+#%%
+modelacurrate=[]
+
+for i in range (400):
+
+    x_train = np.delete(x,i,0)
+    x_test = x[i].reshape(1,np.size(x_train,axis=1))
+    y_train = np.delete(y_transformed,i,0)
+    y_test=y_transformed[i]
+    
+    clfmodel = RandomForestClassifier(n_estimators=100).fit(x_train,y_train)
+
+    predictions = clf.predict(x_test)
+    print(title[i])
+    
+    modelAccuracy = accuracy_score(y_test,predictions)
+    print('Random forest model accuracy:',modelAccuracy)
+    modelacurrate.append(modelAccuracy)
+    print('---------------')
+    
+sum(modelacurrate)/len(modelacurrate)
+#%%
+for i in range (400):
+
+    dataset=pd.DataFrame.merge(dfPerso,Ftitle[title[i]], left_index =True , right_index = True,how = 'inner')
+    dataset.dropna(inplace= True)
+    lab = preprocessing.LabelEncoder()
+    x = dataset.iloc[:,:8]
+    y = dataset.iloc[:,8:].to_numpy()
+    y_transformed = lab.fit_transform(y)
+    
+    clfmodel = RandomForestClassifier(n_estimators=100).fit(x,y_transformed)
+
+    predictions = clfmodel.predict(x)
+    print(title[i])
+    
+    modelAccuracy = accuracy_score(y_transformed,predictions)
+    print('Random forest model accuracy:',modelAccuracy)
+    modelacurrate.append(modelAccuracy)
+    print('---------------')
+
+
+
